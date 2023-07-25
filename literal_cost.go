@@ -9,9 +9,8 @@ func utf8Position(last uint, c uint, clamp uint) uint {
 		/* Let's decide over the last byte if this ends the sequence. */
 		if last < 0xE0 {
 			return 0 /* Completed two or three byte coding. */ /* Next one is the 'Byte 3' of utf-8 encoding. */
-		} else {
-			return brotli_min_size_t(2, clamp)
 		}
+		return brotli_min_size_t(2, clamp)
 	}
 }
 
@@ -40,7 +39,7 @@ func decideMultiByteStatsLevel(pos uint, len uint, mask uint, data []byte) uint 
 func estimateBitCostsForLiteralsUTF8(pos uint, len uint, mask uint, data []byte, cost []float32) {
 	var max_utf8 uint = decideMultiByteStatsLevel(pos, uint(len), mask, data)
 	/* Bootstrap histograms. */
-	var histogram = [3][256]uint{[256]uint{0}}
+	var histogram = [3][256]uint{{0}}
 	var window_half uint = 495
 	var in_window uint = brotli_min_size_t(window_half, uint(len))
 	var in_window_utf8 = [3]uint{0}
@@ -136,47 +135,46 @@ func estimateBitCostsForLiterals(pos uint, len uint, mask uint, data []byte, cos
 	if isMostlyUTF8(data, pos, mask, uint(len), kMinUTF8Ratio) {
 		estimateBitCostsForLiteralsUTF8(pos, uint(len), mask, data, cost)
 		return
-	} else {
-		var histogram = [256]uint{0}
-		var window_half uint = 2000
-		var in_window uint = brotli_min_size_t(window_half, uint(len))
-		var i uint
-		/* Bootstrap histogram. */
-		for i = 0; i < in_window; i++ {
-			histogram[data[(pos+i)&mask]]++
+	}
+	var histogram = [256]uint{0}
+	var window_half uint = 2000
+	var in_window uint = brotli_min_size_t(window_half, uint(len))
+	var i uint
+	/* Bootstrap histogram. */
+	for i = 0; i < in_window; i++ {
+		histogram[data[(pos+i)&mask]]++
+	}
+
+	/* Compute bit costs with sliding window. */
+	for i = 0; i < len; i++ {
+		var histo uint
+		if i >= window_half {
+			/* Remove a byte in the past. */
+			histogram[data[(pos+i-window_half)&mask]]--
+
+			in_window--
 		}
 
-		/* Compute bit costs with sliding window. */
-		for i = 0; i < len; i++ {
-			var histo uint
-			if i >= window_half {
-				/* Remove a byte in the past. */
-				histogram[data[(pos+i-window_half)&mask]]--
+		if i+window_half < len {
+			/* Add a byte in the future. */
+			histogram[data[(pos+i+window_half)&mask]]++
 
-				in_window--
+			in_window++
+		}
+
+		histo = histogram[data[(pos+i)&mask]]
+		if histo == 0 {
+			histo = 1
+		}
+		{
+			var lit_cost float64 = fastLog2(in_window) - fastLog2(histo)
+			lit_cost += 0.029
+			if lit_cost < 1.0 {
+				lit_cost *= 0.5
+				lit_cost += 0.5
 			}
 
-			if i+window_half < len {
-				/* Add a byte in the future. */
-				histogram[data[(pos+i+window_half)&mask]]++
-
-				in_window++
-			}
-
-			histo = histogram[data[(pos+i)&mask]]
-			if histo == 0 {
-				histo = 1
-			}
-			{
-				var lit_cost float64 = fastLog2(in_window) - fastLog2(histo)
-				lit_cost += 0.029
-				if lit_cost < 1.0 {
-					lit_cost *= 0.5
-					lit_cost += 0.5
-				}
-
-				cost[i] = float32(lit_cost)
-			}
+			cost[i] = float32(lit_cost)
 		}
 	}
 }

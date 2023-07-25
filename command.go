@@ -143,9 +143,8 @@ func combineLengthCodes(inscode uint16, copycode uint16, use_last_distance bool)
 	if use_last_distance && inscode < 8 && copycode < 16 {
 		if copycode < 8 {
 			return bits64
-		} else {
-			return bits64 | 64
 		}
+		return bits64 | 64
 	} else {
 		/* Specification: 5 Encoding of ... (last table) */
 		/* offset = 2 * index, where index is in range [0..8] */
@@ -221,16 +220,15 @@ func makeInsertCommand(insertlen uint) (cmd command) {
 func commandRestoreDistanceCode(self *command, dist *distanceParams) uint32 {
 	if uint32(self.dist_prefix_&0x3FF) < numDistanceShortCodes+dist.num_direct_distance_codes {
 		return uint32(self.dist_prefix_) & 0x3FF
-	} else {
-		var dcode uint32 = uint32(self.dist_prefix_) & 0x3FF
-		var nbits uint32 = uint32(self.dist_prefix_) >> 10
-		var extra uint32 = self.dist_extra_
-		var postfix_mask uint32 = (1 << dist.distance_postfix_bits) - 1
-		var hcode uint32 = (dcode - dist.num_direct_distance_codes - numDistanceShortCodes) >> dist.distance_postfix_bits
-		var lcode uint32 = (dcode - dist.num_direct_distance_codes - numDistanceShortCodes) & postfix_mask
-		var offset uint32 = ((2 + (hcode & 1)) << nbits) - 4
-		return ((offset + extra) << dist.distance_postfix_bits) + lcode + dist.num_direct_distance_codes + numDistanceShortCodes
 	}
+	var dcode uint32 = uint32(self.dist_prefix_) & 0x3FF
+	var nbits uint32 = uint32(self.dist_prefix_) >> 10
+	var extra uint32 = self.dist_extra_
+	var postfix_mask uint32 = (1 << dist.distance_postfix_bits) - 1
+	var hcode uint32 = (dcode - dist.num_direct_distance_codes - numDistanceShortCodes) >> dist.distance_postfix_bits
+	var lcode uint32 = (dcode - dist.num_direct_distance_codes - numDistanceShortCodes) & postfix_mask
+	var offset uint32 = ((2 + (hcode & 1)) << nbits) - 4
+	return ((offset + extra) << dist.distance_postfix_bits) + lcode + dist.num_direct_distance_codes + numDistanceShortCodes
 }
 
 func commandDistanceContext(self *command) uint32 {

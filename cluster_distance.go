@@ -8,8 +8,11 @@ import "math"
    See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
 */
 
-/* Computes the bit cost reduction by combining out[idx1] and out[idx2] and if
-   it is below a threshold, stores the pair (idx1, idx2) in the *pairs queue. */
+/*
+Computes the bit cost reduction by combining out[idx1] and out[idx2] and if
+
+	it is below a threshold, stores the pair (idx1, idx2) in the *pairs queue.
+*/
 func compareAndPushToQueueDistance(out []histogramDistance, cluster_size []uint32, idx1 uint32, idx2 uint32, max_num_pairs uint, pairs []histogramPair, num_pairs *uint) {
 	var is_good_pair bool = false
 	var p histogramPair
@@ -158,17 +161,19 @@ func histogramCombineDistance(out []histogramDistance, cluster_size []uint32, sy
 func histogramBitCostDistanceDistance(histogram *histogramDistance, candidate *histogramDistance) float64 {
 	if histogram.total_count_ == 0 {
 		return 0.0
-	} else {
-		var tmp histogramDistance = *histogram
-		histogramAddHistogramDistance(&tmp, candidate)
-		return populationCostDistance(&tmp) - candidate.bit_cost_
 	}
+	var tmp histogramDistance = *histogram
+	histogramAddHistogramDistance(&tmp, candidate)
+	return populationCostDistance(&tmp) - candidate.bit_cost_
 }
 
-/* Find the best 'out' histogram for each of the 'in' histograms.
-   When called, clusters[0..num_clusters) contains the unique values from
-   symbols[0..in_size), but this property is not preserved in this function.
-   Note: we assume that out[]->bit_cost_ is already up-to-date. */
+/*
+Find the best 'out' histogram for each of the 'in' histograms.
+
+	When called, clusters[0..num_clusters) contains the unique values from
+	symbols[0..in_size), but this property is not preserved in this function.
+	Note: we assume that out[]->bit_cost_ is already up-to-date.
+*/
 func histogramRemapDistance(in []histogramDistance, in_size uint, clusters []uint32, num_clusters uint, out []histogramDistance, symbols []uint32) {
 	var i uint
 	for i = 0; i < in_size; i++ {

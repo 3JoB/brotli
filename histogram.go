@@ -31,7 +31,7 @@ func histogramAddLiteral(self *histogramLiteral, val uint) {
 
 func histogramAddVectorLiteral(self *histogramLiteral, p []byte, n uint) {
 	self.total_count_ += n
-	n += 1
+	n++
 	for {
 		n--
 		if n == 0 {
@@ -80,7 +80,7 @@ func histogramAddCommand(self *histogramCommand, val uint) {
 
 func histogramAddVectorCommand(self *histogramCommand, p []uint16, n uint) {
 	self.total_count_ += n
-	n += 1
+	n++
 	for {
 		n--
 		if n == 0 {
@@ -129,7 +129,7 @@ func histogramAddDistance(self *histogramDistance, val uint) {
 
 func histogramAddVectorDistance(self *histogramDistance, p []uint16, n uint) {
 	self.total_count_ += n
-	n += 1
+	n++
 	for {
 		n--
 		if n == 0 {

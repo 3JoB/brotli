@@ -76,9 +76,8 @@ func myRand(seed *uint32) uint32 {
 func bitCost(count uint) float64 {
 	if count == 0 {
 		return -2.0
-	} else {
-		return fastLog2(count)
 	}
+	return fastLog2(count)
 }
 
 const histogramsPerBatch = 64

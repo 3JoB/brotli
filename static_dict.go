@@ -14,10 +14,11 @@ const maxStaticDictionaryMatchLen = 37
 
 const kInvalidMatch uint32 = 0xFFFFFFF
 
-/* Copyright 2013 Google Inc. All Rights Reserved.
+/*
+Copyright 2013 Google Inc. All Rights Reserved.
 
-   Distributed under MIT license.
-   See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
+	Distributed under MIT license.
+	See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
 */
 func hash(data []byte) uint32 {
 	var h uint32 = binary.LittleEndian.Uint32(data) * kDictHashMul32
@@ -40,34 +41,33 @@ func dictMatchLength(dict *dictionary, data []byte, id uint, len uint, maxlen ui
 func isMatch(d *dictionary, w dictWord, data []byte, max_length uint) bool {
 	if uint(w.len) > max_length {
 		return false
+	}
+	var offset uint = uint(d.offsets_by_length[w.len]) + uint(w.len)*uint(w.idx)
+	var dict []byte = d.data[offset:]
+	if w.transform == 0 {
+		/* Match against base dictionary word. */
+		return findMatchLengthWithLimit(dict, data, uint(w.len)) == uint(w.len)
+	} else if w.transform == 10 {
+		/* Match against uppercase first transform.
+		   Note that there are only ASCII uppercase words in the lookup table. */
+		return dict[0] >= 'a' && dict[0] <= 'z' && (dict[0]^32) == data[0] && findMatchLengthWithLimit(dict[1:], data[1:], uint(w.len)-1) == uint(w.len-1)
 	} else {
-		var offset uint = uint(d.offsets_by_length[w.len]) + uint(w.len)*uint(w.idx)
-		var dict []byte = d.data[offset:]
-		if w.transform == 0 {
-			/* Match against base dictionary word. */
-			return findMatchLengthWithLimit(dict, data, uint(w.len)) == uint(w.len)
-		} else if w.transform == 10 {
-			/* Match against uppercase first transform.
-			   Note that there are only ASCII uppercase words in the lookup table. */
-			return dict[0] >= 'a' && dict[0] <= 'z' && (dict[0]^32) == data[0] && findMatchLengthWithLimit(dict[1:], data[1:], uint(w.len)-1) == uint(w.len-1)
-		} else {
-			/* Match against uppercase all transform.
-			   Note that there are only ASCII uppercase words in the lookup table. */
-			var i uint
-			for i = 0; i < uint(w.len); i++ {
-				if dict[i] >= 'a' && dict[i] <= 'z' {
-					if (dict[i] ^ 32) != data[i] {
-						return false
-					}
-				} else {
-					if dict[i] != data[i] {
-						return false
-					}
+		/* Match against uppercase all transform.
+		   Note that there are only ASCII uppercase words in the lookup table. */
+		var i uint
+		for i = 0; i < uint(w.len); i++ {
+			if dict[i] >= 'a' && dict[i] <= 'z' {
+				if (dict[i] ^ 32) != data[i] {
+					return false
+				}
+			} else {
+				if dict[i] != data[i] {
+					return false
 				}
 			}
-
-			return true
 		}
+
+		return true
 	}
 }
 

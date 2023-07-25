@@ -11,9 +11,8 @@ func (h *hashComposite) HashTypeLength() uint {
 	var b uint = h.hb.HashTypeLength()
 	if a > b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func (h *hashComposite) StoreLookahead() uint {
@@ -21,13 +20,15 @@ func (h *hashComposite) StoreLookahead() uint {
 	var b uint = h.hb.StoreLookahead()
 	if a > b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
-/* Composite hasher: This hasher allows to combine two other hashers, HASHER_A
-   and HASHER_B. */
+/*
+Composite hasher: This hasher allows to combine two other hashers, HASHER_A
+
+	and HASHER_B.
+*/
 type hashComposite struct {
 	hasherCommon
 	ha     hasherHandle
@@ -39,10 +40,13 @@ func (h *hashComposite) Initialize(params *encoderParams) {
 	h.params = params
 }
 
-/* TODO: Initialize of the hashers is defered to Prepare (and params
-   remembered here) because we don't get the one_shot and input_size params
-   here that are needed to know the memory size of them. Instead provide
-   those params to all hashers InitializehashComposite */
+/*
+TODO: Initialize of the hashers is defered to Prepare (and params
+
+	remembered here) because we don't get the one_shot and input_size params
+	here that are needed to know the memory size of them. Instead provide
+	those params to all hashers InitializehashComposite
+*/
 func (h *hashComposite) Prepare(one_shot bool, input_size uint, data []byte) {
 	if h.ha == nil {
 		var common_a *hasherCommon

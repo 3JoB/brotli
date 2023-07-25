@@ -13,9 +13,12 @@ const kRollingHashMul32 uint32 = 69069
 
 const kInvalidPosHashRolling uint32 = 0xffffffff
 
-/* This hasher uses a longer forward length, but returning a higher value here
-   will hurt compression by the main hasher when combined with a composite
-   hasher. The hasher tests for forward itself instead. */
+/*
+This hasher uses a longer forward length, but returning a higher value here
+
+	will hurt compression by the main hasher when combined with a composite
+	hasher. The hasher tests for forward itself instead.
+*/
 func (*hashRolling) HashTypeLength() uint {
 	return 4
 }
@@ -24,8 +27,11 @@ func (*hashRolling) StoreLookahead() uint {
 	return 4
 }
 
-/* Computes a code from a single byte. A lookup table of 256 values could be
-   used, but simply adding 1 works about as good. */
+/*
+Computes a code from a single byte. A lookup table of 256 values could be
+
+	used, but simply adding 1 works about as good.
+*/
 func (*hashRolling) HashByte(b byte) uint32 {
 	return uint32(b) + 1
 }
@@ -38,8 +44,11 @@ func (h *hashRolling) HashRollingFunction(state uint32, add byte, rem byte, fact
 	return uint32(factor*state + h.HashByte(add) - factor_remove*h.HashByte(rem))
 }
 
-/* Rolling hash for long distance long string matches. Stores one position
-   per bucket, bucket key is computed over a long region. */
+/*
+Rolling hash for long distance long string matches. Stores one position
+
+	per bucket, bucket key is computed over a long region.
+*/
 type hashRolling struct {
 	hasherCommon
 
@@ -83,11 +92,9 @@ func (h *hashRolling) Prepare(one_shot bool, input_size uint, data []byte) {
 	}
 }
 
-func (*hashRolling) Store(data []byte, mask uint, ix uint) {
-}
+func (*hashRolling) Store(data []byte, mask uint, ix uint) {}
 
-func (*hashRolling) StoreRange(data []byte, mask uint, ix_start uint, ix_end uint) {
-}
+func (*hashRolling) StoreRange(data []byte, mask uint, ix_start uint, ix_end uint) {}
 
 func (h *hashRolling) StitchToPreviousBlock(num_bytes uint, position uint, ringbuffer []byte, ring_buffer_mask uint) {
 	var position_masked uint
@@ -116,8 +123,7 @@ func (h *hashRolling) StitchToPreviousBlock(num_bytes uint, position uint, ringb
 	h.next_ix = position
 }
 
-func (*hashRolling) PrepareDistanceCache(distance_cache []int) {
-}
+func (*hashRolling) PrepareDistanceCache(distance_cache []int) {}
 
 func (h *hashRolling) FindLongestMatch(dictionary *encoderDictionary, data []byte, ring_buffer_mask uint, distance_cache []int, cur_ix uint, max_length uint, max_backward uint, gap uint, max_distance uint, out *hasherSearchResult) {
 	var cur_ix_masked uint = cur_ix & ring_buffer_mask

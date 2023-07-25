@@ -8,9 +8,9 @@ package brotli
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"os"
@@ -264,22 +264,22 @@ func (r readerWithTimeout) Read(p []byte) (int, error) {
 	ch := make(chan result)
 	go func() {
 		n, err := r.Reader.Read(p)
-		ch <- result{n, err}
+		ch <- result{n: n, err: err}
 	}()
 	select {
 	case result := <-ch:
 		return result.n, result.err
 	case <-time.After(5 * time.Second):
-		return 0, fmt.Errorf("read timed out")
+		return 0, errors.New("read timed out")
 	}
 }
 
 func TestDecoderStreaming(t *testing.T) {
 	pr, pw := io.Pipe()
 	writer := NewWriterOptions(pw, WriterOptions{Quality: 5, LGWin: 20})
-	reader := readerWithTimeout{NewReader(pr)}
+	reader := readerWithTimeout{Reader: NewReader(pr)}
 	defer func() {
-		go ioutil.ReadAll(pr) // swallow the "EOF" token from writer.Close
+		go io.ReadAll(pr) // swallow the "EOF" token from writer.Close
 		if err := writer.Close(); err != nil {
 			t.Errorf("writer.Close: %v", err)
 		}
@@ -360,7 +360,6 @@ func TestReader(t *testing.T) {
 			"<%d bytes>",
 			got, len(content))
 	}
-
 }
 
 func TestDecode(t *testing.T) {
@@ -433,10 +432,10 @@ func TestEncodeDecode(t *testing.T) {
 		data    []byte
 		repeats int
 	}{
-		{nil, 0},
-		{[]byte("A"), 1},
-		{[]byte("<html><body><H1>Hello world</H1></body></html>"), 10},
-		{[]byte("<html><body><H1>Hello world</H1></body></html>"), 1000},
+		{data: nil, repeats: 0},
+		{data: []byte("A"), repeats: 1},
+		{data: []byte("<html><body><H1>Hello world</H1></body></html>"), repeats: 10},
+		{data: []byte("<html><body><H1>Hello world</H1></body></html>"), repeats: 1000},
 	} {
 		t.Logf("case %q x %d", test.data, test.repeats)
 		input := bytes.Repeat(test.data, test.repeats)
@@ -528,11 +527,11 @@ func Encode(content []byte, options WriterOptions) ([]byte, error) {
 // Decode decodes Brotli encoded data.
 func Decode(encodedData []byte) ([]byte, error) {
 	r := NewReader(bytes.NewReader(encodedData))
-	return ioutil.ReadAll(r)
+	return io.ReadAll(r)
 }
 
 func BenchmarkEncodeLevels(b *testing.B) {
-	opticks, err := ioutil.ReadFile("testdata/Isaac.Newton-Opticks.txt")
+	opticks, err := os.ReadFile("testdata/Isaac.Newton-Opticks.txt")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -542,7 +541,7 @@ func BenchmarkEncodeLevels(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(opticks)))
 			for i := 0; i < b.N; i++ {
-				w := NewWriterLevel(ioutil.Discard, level)
+				w := NewWriterLevel(io.Discard, level)
 				w.Write(opticks)
 				w.Close()
 			}
@@ -551,7 +550,7 @@ func BenchmarkEncodeLevels(b *testing.B) {
 }
 
 func BenchmarkEncodeLevelsReset(b *testing.B) {
-	opticks, err := ioutil.ReadFile("testdata/Isaac.Newton-Opticks.txt")
+	opticks, err := os.ReadFile("testdata/Isaac.Newton-Opticks.txt")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -566,7 +565,7 @@ func BenchmarkEncodeLevelsReset(b *testing.B) {
 			b.ReportMetric(float64(len(opticks))/float64(buf.Len()), "ratio")
 			b.SetBytes(int64(len(opticks)))
 			for i := 0; i < b.N; i++ {
-				w.Reset(ioutil.Discard)
+				w.Reset(io.Discard)
 				w.Write(opticks)
 				w.Close()
 			}
@@ -575,7 +574,7 @@ func BenchmarkEncodeLevelsReset(b *testing.B) {
 }
 
 func BenchmarkDecodeLevels(b *testing.B) {
-	opticks, err := ioutil.ReadFile("testdata/Isaac.Newton-Opticks.txt")
+	opticks, err := os.ReadFile("testdata/Isaac.Newton-Opticks.txt")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -590,7 +589,7 @@ func BenchmarkDecodeLevels(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(opticks)))
 			for i := 0; i < b.N; i++ {
-				io.Copy(ioutil.Discard, NewReader(bytes.NewReader(compressed)))
+				io.Copy(io.Discard, NewReader(bytes.NewReader(compressed)))
 			}
 		})
 	}

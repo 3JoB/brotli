@@ -483,13 +483,13 @@ var kTransformsData = []byte{
 }
 
 var kBrotliTransforms = transforms{
-	217,
-	[]byte(kPrefixSuffix),
-	kPrefixSuffixMap[:],
-	121,
-	kTransformsData,
-	nil, /* no extra parameters */
-	[transformsMaxCutOff + 1]int16{0, 12, 27, 23, 42, 63, 56, 48, 59, 64},
+	prefix_suffix_size:                217,
+	prefix_suffix:                     []byte(kPrefixSuffix),
+	prefix_suffix_map:                 kPrefixSuffixMap[:],
+	num_transforms:                    121,
+	transforms:                        kTransformsData,
+	params /* no extra parameters */ : nil,
+	cutOffTransforms:                  [transformsMaxCutOff + 1]int16{0, 12, 27, 23, 42, 63, 56, 48, 59, 64},
 }
 
 func getTransforms() *transforms {

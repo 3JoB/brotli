@@ -106,3 +106,5 @@ func (r *Reader) Read(p []byte) (n int, err error) {
 		r.in = r.buf[:encN]
 	}
 }
+
+func (r *Reader) Close() error { return nil }

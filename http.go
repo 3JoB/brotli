@@ -25,7 +25,7 @@ func HTTPCompressor(w http.ResponseWriter, r *http.Request) io.WriteCloser {
 		w.Header().Set("Content-Encoding", "gzip")
 		return gzip.NewWriter(w)
 	}
-	return nopCloser{w}
+	return nopCloser{Writer: w}
 }
 
 // negotiateContentEncoding returns the best offered content encoding for the
@@ -171,7 +171,7 @@ func init() {
 	for c := 0; c < 256; c++ {
 		var t octetType
 		isCtl := c <= 31 || c == 127
-		isChar := 0 <= c && c <= 127
+		isChar := c >= 0 && c <= 127
 		isSeparator := strings.ContainsRune(" \t\"(),/:;<=>?@[]\\{}", rune(c))
 		if strings.ContainsRune(" \t\r\n", rune(c)) {
 			t |= isSpace
