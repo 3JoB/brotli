@@ -145,21 +145,20 @@ func combineLengthCodes(inscode uint16, copycode uint16, use_last_distance bool)
 			return bits64
 		}
 		return bits64 | 64
-	} else {
-		/* Specification: 5 Encoding of ... (last table) */
-		/* offset = 2 * index, where index is in range [0..8] */
-		var offset uint32 = 2 * ((uint32(copycode) >> 3) + 3*(uint32(inscode)>>3))
-
-		/* All values in specification are K * 64,
-		   where   K = [2, 3, 6, 4, 5, 8, 7, 9, 10],
-		       i + 1 = [1, 2, 3, 4, 5, 6, 7, 8,  9],
-		   K - i - 1 = [1, 1, 3, 0, 0, 2, 0, 1,  2] = D.
-		   All values in D require only 2 bits to encode.
-		   Magic constant is shifted 6 bits left, to avoid final multiplication. */
-		offset = (offset << 5) + 0x40 + ((0x520D40 >> offset) & 0xC0)
-
-		return uint16(offset | uint32(bits64))
 	}
+	/* Specification: 5 Encoding of ... (last table) */
+	/* offset = 2 * index, where index is in range [0..8] */
+	var offset uint32 = 2 * ((uint32(copycode) >> 3) + 3*(uint32(inscode)>>3))
+
+	/* All values in specification are K * 64,
+	   where   K = [2, 3, 6, 4, 5, 8, 7, 9, 10],
+	       i + 1 = [1, 2, 3, 4, 5, 6, 7, 8,  9],
+	   K - i - 1 = [1, 1, 3, 0, 0, 2, 0, 1,  2] = D.
+	   All values in D require only 2 bits to encode.
+	   Magic constant is shifted 6 bits left, to avoid final multiplication. */
+	offset = (offset << 5) + 0x40 + ((0x520D40 >> offset) & 0xC0)
+
+	return uint16(offset | uint32(bits64))
 }
 
 func getLengthCode(insertlen uint, copylen uint, use_last_distance bool, code *uint16) {

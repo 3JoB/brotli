@@ -360,11 +360,10 @@ func shouldUseComplexStaticContextMap(input []byte, start_pos uint, length uint,
 	   for some cases and could be tuned further. */
 	if entropy[2] > 3.0 || entropy[1]-entropy[2] < 0.2 {
 		return false
-	} else {
-		*num_literal_contexts = 13
-		*literal_context_map = kStaticContextMapComplexUTF8[:]
-		return true
 	}
+	*num_literal_contexts = 13
+	*literal_context_map = kStaticContextMapComplexUTF8[:]
+	return true
 }
 
 func decideOverLiteralContextModeling(input []byte, start_pos uint, length uint, mask uint, quality int, size_hint uint, num_literal_contexts *uint, literal_context_map *[]uint32) {
@@ -372,6 +371,7 @@ func decideOverLiteralContextModeling(input []byte, start_pos uint, length uint,
 		return
 	} else if shouldUseComplexStaticContextMap(input, start_pos, length, mask, quality, size_hint, num_literal_contexts, literal_context_map) {
 	} else
+
 	/* Context map was already set, nothing else to do. */
 	{
 		var end_pos uint = start_pos + length

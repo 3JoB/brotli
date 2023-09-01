@@ -1,35 +1,26 @@
 package brotli
 
-const fastOnePassCompressionQuality = 0
+const (
+	fastOnePassCompressionQuality         = 0
+	fastTwoPassCompressionQuality         = 1
+	zopflificationQuality                 = 10
+	hqZopflificationQuality               = 11
+	maxQualityForStaticEntropyCodes       = 2
+	minQualityForBlockSplit               = 4
+	minQualityForNonzeroDistanceParams    = 4
+	minQualityForOptimizeHistograms       = 4
+	minQualityForExtensiveReferenceSearch = 5
+	minQualityForContextModeling          = 5
+	minQualityForHqContextModeling        = 7
+	minQualityForHqBlockSplitting         = 10
 
-const fastTwoPassCompressionQuality = 1
+	/*
+		For quality below MIN_QUALITY_FOR_BLOCK_SPLIT there is no block splitting,
 
-const zopflificationQuality = 10
-
-const hqZopflificationQuality = 11
-
-const maxQualityForStaticEntropyCodes = 2
-
-const minQualityForBlockSplit = 4
-
-const minQualityForNonzeroDistanceParams = 4
-
-const minQualityForOptimizeHistograms = 4
-
-const minQualityForExtensiveReferenceSearch = 5
-
-const minQualityForContextModeling = 5
-
-const minQualityForHqContextModeling = 7
-
-const minQualityForHqBlockSplitting = 10
-
-/*
-For quality below MIN_QUALITY_FOR_BLOCK_SPLIT there is no block splitting,
-
-	so we buffer at most this much literals and commands.
-*/
-const maxNumDelayedSymbols = 0x2FFF
+			so we buffer at most this much literals and commands.
+	*/
+	maxNumDelayedSymbols = 0x2FFF
+)
 
 /* Returns hash-table size for quality levels 0 and 1. */
 func maxHashTableSize(quality int) uint {
